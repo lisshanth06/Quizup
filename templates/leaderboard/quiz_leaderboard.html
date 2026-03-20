@@ -1,0 +1,81 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}Leaderboard - {{ quiz.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>{{ quiz.name }} - Leaderboard</h1>
+    </div>
+
+    {% if participant_rank %}
+    <div class="dashboard-section" style="text-align: center;">
+        <h3>Your Rank: #{{ participant_rank }}</h3>
+    </div>
+    {% endif %}
+
+    <div class="dashboard-section">
+        <div class="leaderboard-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Correct Answers</th>
+                        <th>Cheat Count</th>
+                        <th>Penalty</th>
+                        <th>Final Score</th>
+                        <th>Questions</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in leaderboard %}
+                    <tr 
+                        class="{% if participant and entry.participant.id == participant.id %}highlight-row{% endif %} {% if entry.cheat_score > 0 %}cheater-row{% endif %}"
+                        {% if entry.cheat_score > 0 %}style="background-color: #fee2e2; color: #991b1b;"{% endif %}
+                    >
+                        <td>
+                            {% if entry.rank == 1 %}
+                            <strong class="gold">{{ entry.rank }}</strong>
+                            {% elif entry.rank == 2 %}
+                            <strong class="silver">{{ entry.rank }}</strong>
+                            {% elif entry.rank == 3 %}
+                            <strong class="bronze">{{ entry.rank }}</strong>
+                            {% else %}
+                            {{ entry.rank }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ entry.participant.name }}
+                            {% if entry.cheat_score >= 5 %}
+                                <span class="badge" style="background-color: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-left: 5px;">Suspicious</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ entry.participant.email }}</td>
+                        <td>{{ entry.raw_score }}</td>
+                        <td>{{ entry.cheat_score }}</td>
+                        <td>-{{ entry.penalty }}</td>
+                        <td><strong>{{ entry.final_score }}</strong></td>
+                        <td>{{ entry.total_questions }}</td>
+                        <td>{{ entry.total_time }}s</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="no-data">No participants yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="leaderboard-actions">
+        {% if request.session.is_admin %}
+        <a href="{% url 'leaderboard:download_csv' quiz.id %}" class="btn btn-primary">Download CSV</a>
+        {% endif %}
+        <a href="{% url 'core:landing' %}" class="btn btn-secondary">Back to Home</a>
+    </div>
+</div>
+{% endblock %}

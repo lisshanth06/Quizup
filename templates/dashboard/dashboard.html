@@ -1,0 +1,157 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>Dashboard</h1>
+    </div>
+
+    <div class="dashboard-section">
+        <h3>Create New Quiz</h3>
+        <form method="post" action="{% url 'dashboard:quiz_create' %}" class="inline-form">
+            {% csrf_token %}
+            <input type="text" name="name" placeholder="Enter quiz name" required class="form-control">
+            <button type="submit" class="btn btn-primary">Create</button>
+        </form>
+    </div>
+
+    <div class="dashboard-section">
+        <h3>All Quizzes</h3>
+
+        {% if quizzes %}
+        <div class="quiz-list">
+            {% for quiz in quizzes %}
+            <div class="quiz-item">
+                <div class="quiz-info">
+                    <h3>{{ quiz.name }}</h3>
+                    <p>
+                        <span class="status-badge status-badge-{{ quiz.status|lower }}">{{ quiz.status }}</span>
+                        {% if quiz.show_leaderboard %}
+                        <span class="status-badge status-badge-live" style="margin-left:8px;">Leaderboard
+                            Published</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Active Participants:</strong> {{ quiz.active_participants_count }}</p>
+                    <p>Created {{ quiz.created_at|date:"M d, Y" }}</p>
+                </div>
+                <div class="quiz-actions">
+                    <a href="{% url 'dashboard:quiz_manage' quiz.id %}" class="btn btn-primary">Manage</a>
+
+                    <form method="post" action="{% url 'dashboard:toggle_leaderboard' quiz.id %}"
+                        class="leaderboard-toggle-form" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-info">
+                            {% if quiz.show_leaderboard %}Hide{% else %}Publish{% endif %} Leaderboard
+                        </button>
+                    </form>
+
+                    {% if quiz.status != "LIVE" %}
+                    <form method="post" action="{% url 'dashboard:quiz_delete' quiz.id %}"
+                        onsubmit="return confirm('Are you sure you want to delete this quiz permanently?');"
+                        style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="danger-btn">Delete</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="no-data">No quizzes yet. Create one above to get started.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .toast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: rgba(20, 20, 20, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        z-index: 9999;
+        font-weight: 500;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+</style>
+
+<script>
+    function showToast(msg) {
+        const toast = document.createElement("div");
+        toast.innerText = msg;
+        toast.className = "toast";
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    async function reloadLeaderboard() {
+        try {
+            const res = await fetch(window.location.href);
+            const html = await res.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, "text/html");
+            const newList = doc.getElementById("quizList");
+            if (newList) {
+                document.getElementById("quizList").innerHTML = newList.innerHTML;
+                bindToggleForms();
+            } else {
+                location.reload();
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function bindToggleForms() {
+        document.querySelectorAll('.leaderboard-toggle-form').forEach(form => {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerText;
+                submitBtn.disabled = true;
+                submitBtn.innerText = "Updating...";
+                
+                try {
+                    const formData = new FormData(this);
+                    const res = await fetch(this.action, {
+                        method: "POST",
+                        body: formData,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        showToast(data.message);
+                        await reloadLeaderboard();
+                    } else {
+                        alert(data.message || "Action failed");
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = originalText;
+                    }
+                } catch (err) {
+                    alert("Server error occurred.");
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = originalText;
+                }
+            });
+        });
+    }
+
+    // Initial binding
+    bindToggleForms();
+</script>
+{% endblock %}

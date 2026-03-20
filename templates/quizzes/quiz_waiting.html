@@ -1,0 +1,47 @@
+{% extends 'base_user.html' %}
+
+{% block title %}Waiting - {{ quiz.name }}{% endblock %}
+
+{% block content %}
+<div class="waiting-page">
+    <div class="waiting-content">
+        <h2>{{ quiz.name }}</h2>
+        <p class="waiting-message" style="font-size: 18px; color: var(--primary); font-weight: 500; margin: 24px 0;">
+            Waiting for the host to start the quiz...
+        </p>
+
+        <div style="display: flex; justify-content: center; margin: 24px 0;">
+            <div class="spinner"
+                style="border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;">
+            </div>
+        </div>
+
+        <style>
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+
+        {% if participant %}
+        <p class="participant-info" style="color: var(--text-muted); font-size: 14px;">Logged in as: <strong>{{ participant.name }}</strong></p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    setInterval(() => {
+        fetch(window.location.href, { method: "GET" })
+            .then(res => {
+                if (res.redirected) {
+                    window.location.href = res.url;
+                }
+            });
+    }, 3000);
+</script>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends 'base_user.html' %}
+
+{% block title %}{{ quiz.name }}{% endblock %}
+
+{% block content %}
+<div class="quiz-container" oncontextmenu="return false;" oncopy="return false;" onpaste="return false;"
+    onselectstart="return false;">
+
+    <div class="container">
+        <div id="quiz-content">
+            <div class="quiz-header">
+                <h2>{{ quiz.name }}</h2>
+                <p class="quiz-progress">Question {{ question_no }} of {{ total_questions }}</p>
+            </div>
+
+            <div class="question-card">
+                <!-- TIMER BAR -->
+                <div class="timer-bar">
+                    <div class="timer-fill" id="timer-fill"></div>
+                </div>
+
+                <h3>{{ question.text }}</h3>
+
+                <!-- ANSWER FORM -->
+                <form id="answerForm" method="post" action="{% url 'quizzes:submit_answer' quiz.id %}">
+                    {% csrf_token %}
+
+                    <div class="options">
+                        <label class="option-btn">
+                            <input type="radio" name="option" value="A" required>
+                            <span>{{ question.option_a }}</span>
+                        </label>
+
+                        <label class="option-btn">
+                            <input type="radio" name="option" value="B">
+                            <span>{{ question.option_b }}</span>
+                        </label>
+
+                        <label class="option-btn">
+                            <input type="radio" name="option" value="C">
+                            <span>{{ question.option_c }}</span>
+                        </label>
+
+                        <label class="option-btn">
+                            <input type="radio" name="option" value="D">
+                            <span>{{ question.option_d }}</span>
+                        </label>
+                    </div>
+
+                    <div class="submit-btn-container">
+                        <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+                            Submit & Continue
+                        </button>
+                    </div>
+                </form>
+
+                <p class="timer-text" id="timerText"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /* ---------- TIMER ---------- */
+    let timeLeft = {{ remaining_time }};
+    const totalTime = {{ question.time_limit }};
+    const bar = document.getElementById("timer-fill");
+    const form = document.getElementById("answerForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const timerText = document.getElementById("timerText");
+    let allowNavigation = false;
+
+    form.addEventListener("submit", function () {
+        allowNavigation = true;
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Submitting...";
+    });
+
+    window.addEventListener("beforeunload", function (e) {
+        if (!allowNavigation) {
+            e.preventDefault();
+            e.returnValue = "";
+        }
+    });
+
+    function formatTime(s) {
+        const m = Math.floor(s / 60);
+        const sec = s % 60;
+        return m > 0 ? m + "m " + sec + "s remaining" : sec + "s remaining";
+    }
+
+    function updateTimer() {
+        const percentage = (timeLeft / totalTime) * 100;
+        bar.style.width = percentage + "%";
+        timerText.textContent = formatTime(timeLeft);
+
+        if (percentage <= 25) {
+            bar.classList.remove("warning");
+            bar.classList.add("danger");
+        } else if (percentage <= 50) {
+            bar.classList.remove("danger");
+            bar.classList.add("warning");
+        } else {
+            bar.classList.remove("warning", "danger");
+        }
+    }
+
+    const timer = setInterval(function () {
+        timeLeft--;
+        updateTimer();
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            allowNavigation = true;
+            form.submit();
+        }
+    }, 1000);
+
+    updateTimer();
+
+    /* ---------- OPTION SELECTION ---------- */
+    var optionBtns = document.querySelectorAll('.option-btn');
+    optionBtns.forEach(function (btn) {
+        var radio = btn.querySelector('input[type="radio"]');
+        radio.addEventListener('change', function () {
+            optionBtns.forEach(function (b) { b.classList.remove('selected'); });
+            if (radio.checked) {
+                btn.classList.add('selected');
+            }
+        });
+    });
+
+    /* ---------- BLOCK BACK NAVIGATION ---------- */
+    history.pushState(null, null, location.href);
+    window.onpopstate = function () { history.pushState(null, null, location.href); };
+
+    /* ---------- BLOCK SHORTCUTS & ANTI-CHEAT ---------- */
+    let lastCheatTime = 0;
+
+    function reportCheat(reason) {
+        const now = Date.now();
+        if (now - lastCheatTime < 2000) return; // DB cooldown
+        lastCheatTime = now;
+
+        console.warn("Anti-Cheat Violation:", reason);
+
+        fetch(`/quiz/{{ quiz.id }}/report-cheat/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ reason: reason })
+        }).then(response => {
+            alert("Warning: Leaving the quiz tab or taking screenshots is prohibited. A penalty of -0.25 marks has been applied.");
+        }).catch(err => console.error("Cheat reporting failed", err));
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.ctrlKey || e.metaKey || e.key === "F12" || e.key === "PrintScreen") {
+            if (e.key === "PrintScreen") {
+                reportCheat("Screenshot Attempt (PrintScreen)");
+            }
+            e.preventDefault();
+        }
+        
+        if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 's' || e.key === 'S')) {
+            reportCheat("Screenshot Attempt (Shortcut)");
+            e.preventDefault();
+        }
+    });
+
+    document.addEventListener("visibilitychange", function() {
+        if (document.visibilityState === 'hidden') {
+            reportCheat("Tab Switched or Browser Minimized");
+        }
+    });
+
+    window.addEventListener("blur", function() {
+        reportCheat("Window Lost Focus");
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base_user.html' %}
+
+{% block title %}Join Quiz - {{ quiz.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-form">
+        <h2>Join Quiz</h2>
+        <p class="info-text">Enter your details to receive an OTP for <strong>{{ quiz.name }}</strong></p>
+
+        <form method="post" class="form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required class="form-control"
+                    placeholder="Enter your full name">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required class="form-control" placeholder="you@example.com">
+                <small class="form-text">Use the email address provided by your organizer</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Send OTP</button>
+        </form>
+
+        <div class="form-footer">
+            <a href="{% url 'core:landing' %}" class="link">Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

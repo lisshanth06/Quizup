@@ -1,0 +1,11 @@
+text,option_a,option_b,option_c,option_d,correct_option,time_limit,order
+"What is Python?","A snake","A programming language","A car","A game","B","30","1"
+"What does HTML stand for?","Hyper Trainer Marking Language","Hyper Text Markup Language","High Text Machine Language","None","B","30","2"
+"What is 2 + 2?","3","4","5","6","B","20","3"
+"Which planet is known as the Red Planet?","Earth","Mars","Jupiter","Venus","B","25","4"
+"What is the capital of India?","Mumbai","Delhi","Chennai","Kolkata","B","30","5"
+"What does CPU stand for?","Central Process Unit","Central Processing Unit","Computer Personal Unit","None","B","30","6"
+"What is the boiling point of water?","90°C","100°C","110°C","120°C","B","20","7"
+"Which language is used for web apps?","Python","Java","PHP","All of the above","D","30","8"
+"What is Django?","A framework","A database","A browser","An OS","A","30","9"
+"What is CSS used for?","Structure","Styling","Logic","Database","B","25","10"

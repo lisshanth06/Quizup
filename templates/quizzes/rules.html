@@ -1,0 +1,30 @@
+{% extends 'base_user.html' %}
+
+{% block title %}Rules - {{ quiz.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="rules-card"
+        style="background: #111; border: 1px solid #222; border-radius: 16px; padding: 32px; max-width: 600px; margin: 40px auto; color: var(--text);">
+        <h2 style="text-align: center; margin-bottom: 24px; color: var(--primary);">Quiz Rules</h2>
+
+        <div style="margin-bottom: 32px;">
+            <ul style="list-style-type: disc; padding-left: 20px; line-height: 1.8; color: var(--text-muted);">
+                <li>This quiz is timed. You cannot pause the timer once you start a question.</li>
+                <li>There is no negative marking for incorrect answers.</li>
+                <li>You cannot go back to previous questions. Once you click "Submit & Continue", your answer is locked.
+                </li>
+                <li>Do not refresh the page or close the browser tab during the quiz. Doing so might submit your current
+                    question automatically.</li>
+                <li>Any attempt to switch tabs or use automated tools will result in disqualification.</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="{% url 'quizzes:quiz_detail' quiz.id %}" class="btn btn-primary btn-block"
+                style="display: block; width: 100%; box-sizing: border-box; font-size: 16px; padding: 14px;">I Agree,
+                Start Quiz</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

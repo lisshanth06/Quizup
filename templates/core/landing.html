@@ -1,0 +1,92 @@
+{% extends 'base_user.html' %}
+
+{% block title %}Home - Quiz App CSI{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="hero-section">
+        <h1>CSI Quiz Platform</h1>
+        <p class="subtitle">Test your knowledge and compete with others</p>
+    </div>
+
+    <div class="quizzes-section">
+        <h2>Available Quizzes</h2>
+
+        {% if quizzes %}
+        <div class="quiz-grid">
+            {% for quiz in quizzes %}
+            <div class="quiz-card">
+                <h3>{{ quiz.name }}</h3>
+                <p class="quiz-status">
+                    {% if quiz.user_completed %}
+                    <span class="status-badge status-completed"
+                        style="background: #E5E7EB; color: #374151;">COMPLETED</span>
+                    {% elif quiz.show_leaderboard %}
+                    <span class="status-badge status-ended"
+                        style="background: rgba(75, 85, 99, 0.2); color: #9CA3AF;">ENDED</span>
+                    {% else %}
+                    <span class="status-badge status-live" style="background: #DCFCE7; color: #166534;">LIVE</span>
+                    {% endif %}
+                </p>
+
+                {% if quiz.user_completed %}
+                {% if quiz.show_leaderboard %}
+                <a href="{% url 'leaderboard:quiz_leaderboard' quiz.id %}" class="btn btn-primary">View Leaderboard</a>
+                {% else %}
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 10px;">Results will be announced soon
+                </p>
+                {% endif %}
+                {% elif quiz.show_leaderboard %}
+                <p style="color: var(--danger); font-size: 14px; margin-top: 10px;">Quiz is ended by the host</p>
+                <a href="{% url 'leaderboard:quiz_leaderboard' quiz.id %}" class="btn btn-secondary"
+                    style="margin-top: 10px;">View Leaderboard</a>
+                {% else %}
+                <a href="{% url 'accounts:send_otp' quiz.id %}" class="btn btn-primary">Join Quiz</a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-quizzes">
+            <p>No live quizzes at the moment. Please check back later.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{{ initial_states|json_script:"initial-states-data" }}
+
+<script>
+    // Snapshot of initial quiz states rendered server-side safely as JSON
+    const initialStates = JSON.parse(document.getElementById('initial-states-data').textContent);
+
+
+    async function checkQuizStates() {
+        try {
+            const res = await fetch("{% url 'core:quiz_state_api' %}");
+            if (!res.ok) return;
+            const states = await res.json();
+
+            for (const quiz of states) {
+                const prev = initialStates[quiz.id];
+                if (!prev) {
+                    // New quiz appeared – reload
+                    location.reload();
+                    return;
+                }
+                if (prev.show_leaderboard !== quiz.show_leaderboard ||
+                    prev.is_active !== quiz.is_active) {
+                    // A state changed – silently reload to show updated cards
+                    location.reload();
+                    return;
+                }
+            }
+        } catch (e) {
+            // Silently ignore fetch errors
+        }
+    }
+
+    // Poll every 5 seconds
+    setInterval(checkQuizStates, 5000);
+</script>
+{% endblock %}

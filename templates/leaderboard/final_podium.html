@@ -1,0 +1,147 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}Final Podium - {{ quiz.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .podium-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 30px;
+        margin: 50px 0;
+        min-height: 400px;
+    }
+    .podium-item {
+        text-align: center;
+        flex: 1;
+        max-width: 300px;
+    }
+    .podium-place {
+        font-size: 48px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    .podium-medal {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 60px;
+        animation: bounce 1s ease-in-out;
+    }
+    .medal-gold {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+    }
+    .medal-silver {
+        background: linear-gradient(135deg, #C0C0C0, #808080);
+        box-shadow: 0 10px 30px rgba(192, 192, 192, 0.5);
+    }
+    .medal-bronze {
+        background: linear-gradient(135deg, #CD7F32, #8B4513);
+        box-shadow: 0 10px 30px rgba(205, 127, 50, 0.5);
+    }
+    .podium-name {
+        font-size: 24px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    .podium-score {
+        font-size: 20px;
+        color: #666;
+    }
+    .celebration {
+        text-align: center;
+        margin: 30px 0;
+    }
+    .celebration h1 {
+        font-size: 48px;
+        color: #4CAF50;
+        animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    .podium-item.second {
+        order: 1;
+    }
+    .podium-item.first {
+        order: 2;
+    }
+    .podium-item.third {
+        order: 3;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="celebration">
+        <h1>🎉 Congratulations! 🎉</h1>
+        <h2>Final Results - {{ quiz.name }}</h2>
+    </div>
+    
+    <div class="podium-container">
+        {% if podium.1 %}
+        <div class="podium-item second">
+            <div class="podium-place">2nd</div>
+            <div class="podium-medal medal-silver">🥈</div>
+            <div class="podium-name">{{ podium.1.participant.name }}</div>
+            <div class="podium-score">Score: {{ podium.1.final_score }}</div>
+        </div>
+        {% else %}
+        <div class="podium-item second">
+            <div class="podium-place">2nd</div>
+            <div class="podium-medal medal-silver">🥈</div>
+            <div class="podium-name">-</div>
+            <div class="podium-score">-</div>
+        </div>
+        {% endif %}
+        
+        {% if podium.0 %}
+        <div class="podium-item first">
+            <div class="podium-place">1st</div>
+            <div class="podium-medal medal-gold">🥇</div>
+            <div class="podium-name">{{ podium.0.participant.name }}</div>
+            <div class="podium-score">Score: {{ podium.0.final_score }}</div>
+        </div>
+        {% else %}
+        <div class="podium-item first">
+            <div class="podium-place">1st</div>
+            <div class="podium-medal medal-gold">🥇</div>
+            <div class="podium-name">-</div>
+            <div class="podium-score">-</div>
+        </div>
+        {% endif %}
+        
+        {% if podium.2 %}
+        <div class="podium-item third">
+            <div class="podium-place">3rd</div>
+            <div class="podium-medal medal-bronze">🥉</div>
+            <div class="podium-name">{{ podium.2.participant.name }}</div>
+            <div class="podium-score">Score: {{ podium.2.final_score }}</div>
+        </div>
+        {% else %}
+        <div class="podium-item third">
+            <div class="podium-place">3rd</div>
+            <div class="podium-medal medal-bronze">🥉</div>
+            <div class="podium-name">-</div>
+            <div class="podium-score">-</div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="podium-actions" style="text-align: center; margin-top: 50px;">
+        <a href="{% url 'core:landing' %}" class="btn btn-primary">Back to Home</a>
+    </div>
+</div>
+{% endblock %}

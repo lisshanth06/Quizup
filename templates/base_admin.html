@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin - Quiz App CSI{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="{% url 'select_role_home' %}" class="logo">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkhZFYRCVOI_ZRCKxjQhWocWYwVa9Zp80XqA&s" alt="CSI Logo">
+                <span class="logo-text">CSI Admin</span>
+            </a>
+            {% if request.session.is_admin %}
+            <div class="nav-links">
+                <a href="{% url 'dashboard:dashboard' %}" class="nav-link">Dashboard</a>
+                <form method="post" action="{% url 'dashboard:logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link"
+                        style="background:none; border:none; cursor:pointer;">Logout</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

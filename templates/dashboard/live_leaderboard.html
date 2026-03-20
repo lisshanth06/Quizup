@@ -1,0 +1,119 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}LIVE Leaderboard - {{ quiz.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div>
+            <h1>{{ quiz.name }} <span class="status-badge status-badge-live" style="margin-left: 10px;">LIVE</span></h1>
+            <p style="margin-top: 8px; color: var(--text-muted);">Real-time leaderboard monitoring (updates every 3s)
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'dashboard:quiz_manage' quiz.id %}" class="btn btn-secondary">Back to Manage</a>
+        </div>
+    </div>
+
+    <div class="dashboard-section">
+        <div class="leaderboard-table">
+            <table id="leaderboardTable">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>Correct Answers</th>
+                        <th>Cheat Count</th>
+                        <th>Penalty</th>
+                        <th>Final Score</th>
+                        <th>Total Time</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <tr>
+                        <td colspan="7" class="no-data">Loading live data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rank-1 {
+        background-color: rgba(255, 215, 0, 0.08) !important;
+        font-weight: 600;
+        color: #FFD700;
+    }
+
+    .rank-2 {
+        background-color: rgba(192, 192, 192, 0.06) !important;
+        font-weight: 600;
+        color: #C0C0C0;
+    }
+
+    .rank-3 {
+        background-color: rgba(205, 127, 50, 0.08) !important;
+        font-weight: 600;
+        color: #CD7F32;
+    }
+
+    .medal {
+        margin-right: 8px;
+        font-size: 18px;
+    }
+</style>
+
+<script>
+    const leaderboardBody = document.getElementById('leaderboardBody');
+    const quizId = "{{ quiz.id }}";
+
+    function updateLeaderboardUI(data) {
+        if (!data || data.length === 0) {
+            leaderboardBody.innerHTML = '<tr><td colspan="4" class="no-data">No participants yet.</td></tr>';
+            return;
+        }
+
+        let html = '';
+        data.forEach(entry => {
+            let rowClass = '';
+            let medal = '';
+
+            if (entry.rank === 1) { rowClass = 'rank-1'; medal = '🥇 '; }
+            else if (entry.rank === 2) { rowClass = 'rank-2'; medal = '🥈 '; }
+            else if (entry.rank === 3) { rowClass = 'rank-3'; medal = '🥉 '; }
+
+            let rowStyle = entry.cheat_score > 0 ? 'background-color: #fee2e2; color: #991b1b;' : '';
+            let cheatBadge = entry.cheat_score >= 5 ? '<span class="badge" style="background-color: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-left: 5px;">Suspicious</span>' : '';
+
+            html += `
+                <tr class="${rowClass}" style="${rowStyle}">
+                    <td>${entry.rank}</td>
+                    <td>${medal}${entry.name}${cheatBadge}</td>
+                    <td>${entry.raw_score}</td>
+                    <td>${entry.cheat_score}</td>
+                    <td>-${entry.penalty}</td>
+                    <td><strong>${entry.score}</strong></td>
+                    <td>${entry.time}s</td>
+                </tr>
+            `;
+        });
+        leaderboardBody.innerHTML = html;
+    }
+
+    function fetchLiveData() {
+        fetch(`/admin/quiz/${quizId}/live-data/`)
+            .then(res => res.json())
+            .then(data => {
+                updateLeaderboardUI(data);
+            })
+            .catch(err => console.error('Error fetching live data:', err));
+    }
+
+    // Initial fetch
+    fetchLiveData();
+
+    // Poll every 3 seconds
+    setInterval(fetchLiveData, 3000);
+</script>
+{% endblock %}
