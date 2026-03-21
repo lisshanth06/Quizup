@@ -562,6 +562,44 @@ select.form-control {
     color: var(--primary-hover);
 }
 
+.admin-badge {
+    text-align: center;
+    margin-top: 40px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.admin-badge img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary);
+    box-shadow: 0 0 25px var(--glow);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: var(--white);
+    padding: 3px;
+    cursor: help;
+}
+
+.admin-badge img:hover {
+    transform: scale(1.1) rotate(2deg);
+    box-shadow: 0 0 40px var(--glow);
+    border-color: #FFFFFF;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .separator {
     margin: 0 10px;
     color: var(--border);

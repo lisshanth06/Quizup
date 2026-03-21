@@ -180,8 +180,6 @@
         }
     });
 
-    window.addEventListener("blur", function() {
-        reportCheat("Window Lost Focus");
-    });
+    // Removed "blur" event listener to prevent false positives when resizing the window
 </script>
 {% endblock %}

@@ -20,8 +20,13 @@
         </form>
 
         <div class="form-footer">
-            <a href="{% url 'core:landing' %}" class="link">Back to Home</a>
+            <p class="info-text">If you’re not part of the crew, this door isn’t meant for you.
+                Go back to the shore and continue as a user.
+            </p>
+            <a href="{% url 'select_role_home' %}" class="link">Go back to shore</a>
         </div>
     </div>
+
+  
 </div>
 {% endblock %}
