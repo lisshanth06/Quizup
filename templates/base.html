@@ -10,7 +10,43 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        /* CRITICAL LAYOUT RESET - Fixes navbar/background gaps */
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            min-height: 100% !important;
+            overflow-x: hidden;
+            background-color: #0B0B0B;
+        }
+        body {
+            background-image: url("{% static 'css/wallpaper.png' %}");
+            background-size: cover;
+            background-position: top center;
+            background-attachment: fixed;
+        }
+        .navbar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: 70px;
+            z-index: 1000;
+        }
+        .main-content {
+            padding-top: 70px !important;
+            margin: 0 !important;
+            display: flow-root !important;
+            min-height: 100vh;
+        }
+        .container {
+            margin: 0 auto !important;
+        }
+        .hero-section { margin-top: 0 !important; }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 
@@ -19,8 +55,9 @@
     <nav class="navbar">
         <div class="container">
             <a href="{% url 'select_role_home' %}" class="logo">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkhZFYRCVOI_ZRCKxjQhWocWYwVa9Zp80XqA&s" alt="CSI Logo">
-                <span class="logo-text">CSI</span>
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkhZFYRCVOI_ZRCKxjQhWocWYwVa9Zp80XqA&s"
+                    alt="CSI Logo">
+                <span class="logo-text" style="color: #3B82F6;">CSI</span>
             </a>
             {% if request.session.is_admin %}
             <div class="nav-links">

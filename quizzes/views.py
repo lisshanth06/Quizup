@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.cache import never_cache
 from django.utils import timezone
 from random import shuffle
 
@@ -10,6 +11,7 @@ from attempts.models import Attempt, QuestionSession, QuizAttempt
 # =====================================================
 # QUIZ DETAIL — SERVER SIDE TIMER + RANDOMIZED ORDER
 # =====================================================
+@never_cache
 def quiz_detail(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
 
@@ -267,6 +269,7 @@ def quiz_rules(request, quiz_id):
 import json
 from django.http import JsonResponse
 
+@never_cache
 @require_http_methods(["POST"])
 def report_cheat(request, quiz_id):
     participant_id = request.session.get('participant_id')

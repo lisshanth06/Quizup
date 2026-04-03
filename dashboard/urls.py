@@ -1,4 +1,4 @@
-﻿from django.urls import path
+from django.urls import path
 
 from . import views
 
@@ -33,5 +33,9 @@ urlpatterns = [
     path("quiz/<int:quiz_id>/live/", views.quiz_live_leaderboard, name="quiz_live_leaderboard"),
     path("quiz/<int:quiz_id>/live-data/", views.quiz_live_data, name="quiz_live_data"),
     path("quiz/<int:quiz_id>/questions/upload-csv/", views.question_upload_csv, name="question_upload_csv"),
+    path("quiz/<int:quiz_id>/download-emails/", views.download_allowed_emails, name="download_emails"),
+    path("quiz/<int:quiz_id>/add-email/", views.manual_add_email, name="add_email"),
+    path("quiz/<int:quiz_id>/check-email/", views.check_email_presence, name="check_email"),
+    path("quiz/<int:quiz_id>/delete-participant/", views.delete_participant, name="delete_participant"),
+    path("quiz/<int:quiz_id>/participants/", views.participants_list, name="participants_list"),
 ]
-

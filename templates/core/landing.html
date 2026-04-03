@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container">
     <div class="hero-section">
-        <h1>CSI Quiz Platform</h1>
+        <h1><span style="color: #3B82F6;">CSI</span> Quiz Platform</h1>
         <p class="subtitle">Test your knowledge and compete with others</p>
     </div>
 
@@ -89,4 +89,7 @@
     // Poll every 5 seconds
     setInterval(checkQuizStates, 5000);
 </script>
+
+{% include 'footer.html' %}
+
 {% endblock %}

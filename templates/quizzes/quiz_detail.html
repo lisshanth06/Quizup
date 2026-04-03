@@ -140,13 +140,35 @@
 
     /* ---------- BLOCK SHORTCUTS & ANTI-CHEAT ---------- */
     let lastCheatTime = 0;
+    let isPageLoaded = false;
+    let isSubmitting = false;
+    let blurStart = null;
 
-    function reportCheat(reason) {
+    // Ignore events in the first 3 seconds of page load
+    window.onload = () => {
+        setTimeout(() => {
+            isPageLoaded = true;
+            console.log("Anti-cheat system active");
+        }, 3000);
+    };
+
+    // Track form submission to allow navigation
+    document.getElementById("answerForm").addEventListener("submit", () => {
+        isSubmitting = true;
+        allowNavigation = true; // Sync with existing flag
+    });
+
+    function reportCheat(reason, durationMs = null) {
+        if (!isPageLoaded || isSubmitting) return;
+
         const now = Date.now();
-        if (now - lastCheatTime < 2000) return; // DB cooldown
+        if (now - lastCheatTime < 3000) return; // Debounce triggers
+        
         lastCheatTime = now;
 
-        console.warn("Anti-Cheat Violation:", reason);
+        let logMessage = `Anti-Cheat Violation: ${reason}`;
+        if (durationMs) logMessage += ` (Duration: ${durationMs}ms)`;
+        console.warn(logMessage);
 
         fetch(`/quiz/{{ quiz.id }}/report-cheat/`, {
             method: "POST",
@@ -160,6 +182,7 @@
         }).catch(err => console.error("Cheat reporting failed", err));
     }
 
+    // Keyboard Shortcut Detection
     document.addEventListener('keydown', function (e) {
         if (e.ctrlKey || e.metaKey || e.key === "F12" || e.key === "PrintScreen") {
             if (e.key === "PrintScreen") {
@@ -174,12 +197,38 @@
         }
     });
 
-    document.addEventListener("visibilitychange", function() {
-        if (document.visibilityState === 'hidden') {
-            reportCheat("Tab Switched or Browser Minimized");
+    // Tab Switching / Browser Focus Detection with Time Threshold
+    window.addEventListener("blur", () => {
+        if (isPageLoaded && !isSubmitting) {
+            blurStart = Date.now();
         }
     });
 
-    // Removed "blur" event listener to prevent false positives when resizing the window
+    window.addEventListener("focus", () => {
+        if (!blurStart) return;
+
+        const duration = Date.now() - blurStart;
+        blurStart = null;
+
+        if (duration > 2000) {
+            reportCheat("Tab Switched or Browser Minimized", duration);
+        }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+        if (!isPageLoaded || isSubmitting) return;
+
+        if (document.hidden) {
+            if (!blurStart) blurStart = Date.now();
+        } else {
+            if (!blurStart) return;
+            const duration = Date.now() - blurStart;
+            blurStart = null;
+
+            if (duration > 2000) {
+                reportCheat("Left Page Visibility", duration);
+            }
+        }
+    });
 </script>
 {% endblock %}

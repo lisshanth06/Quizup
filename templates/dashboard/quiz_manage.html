@@ -61,6 +61,7 @@
             </form>
             <a href="{% url 'dashboard:quiz_live_leaderboard' quiz.id %}" class="btn"
                 style="border: 1px solid var(--success); color: var(--success); background: transparent;">Live Leaderboard</a>
+            <a href="{% url 'dashboard:download_emails' quiz.id %}" class="btn btn-secondary" style="margin-left: 8px;">Download Emails</a>
             {% endif %}
         </div>
     </div>
@@ -68,30 +69,65 @@
     <!-- ALLOWED PARTICIPANTS -->
     <div class="dashboard-section">
         <h3>Allowed Participants</h3>
-        <p>Only users uploaded via CSV below can attend the quiz.</p>
+        <p style="color: var(--text-muted); font-size: 14px;">Manage users who can attend this quiz.</p>
 
         {% if quiz.can_edit %}
-        <form id="emailUploadForm" method="post" action="{% url 'dashboard:upload_emails' quiz.id %}" enctype="multipart/form-data"
-            class="inline-form" style="margin: 16px 0;">
-            {% csrf_token %}
-            <input type="file" name="csv_file" accept=".csv" required class="form-control" style="width: auto;">
-            <button type="submit" class="btn btn-primary">Upload CSV</button>
-        </form>
+        <!-- ADD / UPLOAD ROW -->
+        <div style="display: flex; gap: 16px; align-items: flex-end; margin: 20px 0; flex-wrap: wrap; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+            <form id="manualEmailForm" method="post" action="{% url 'dashboard:add_email' quiz.id %}" style="flex: 1; min-width: 280px; margin: 0;">
+                {% csrf_token %}
+                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500;">Add Email Manually</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="email" name="email" required placeholder="example@gmail.com" class="form-control" style="flex: 1;">
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+            </form>
+            
+            <div class="divider-v" style="width: 1px; height: 40px; background: var(--border); margin: 0 8px;"></div>
 
-        <form method="post" action="{% url 'dashboard:clear_emails' quiz.id %}"
-            onsubmit="return confirm('Clear all allowed emails?');">
-            {% csrf_token %}
-            <button type="submit" class="danger-btn">Clear All</button>
-        </form>
+            <form id="emailUploadForm" method="post" action="{% url 'dashboard:upload_emails' quiz.id %}" enctype="multipart/form-data" style="flex: 1; min-width: 280px; margin: 0;">
+                {% csrf_token %}
+                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500;">Bulk Upload (CSV)</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="file" name="csv_file" accept=".csv" required class="form-control" style="flex: 1;">
+                    <button type="submit" class="btn btn-primary" style="white-space: nowrap;">Upload CSV</button>
+                </div>
+            </form>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+            <form method="post" action="{% url 'dashboard:clear_emails' quiz.id %}"
+                onsubmit="return confirm('Clear all allowed emails?');" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="danger-btn" style="padding: 10px 20px;">Clear All List</button>
+            </form>
+            <a href="{% url 'dashboard:download_emails' quiz.id %}" class="btn btn-secondary" style="padding: 10px 20px;">Download CSV</a>
+        </div>
         {% endif %}
 
-        <p style="margin-top: 16px;"><strong>Total Allowed:</strong> <span id="participantCount">{{ allowed_participants.count }}</span></p>
-        <div class="email-list-scroll" id="participantList">
-            {% for ap in allowed_participants %}
-            <div class="email-row">{{ ap.email }}</div>
-            {% empty %}
-            <div class="email-row" style="color: var(--text-muted);">No emails uploaded yet.</div>
-            {% endfor %}
+        <div class="participants-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+            <!-- SEARCH -->
+            <div style="padding: 20px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column;">
+                <h4 style="margin-bottom: 16px; font-size: 15px;">Search / Find Participant</h4>
+                <div style="display: flex; gap: 8px;">
+                    <input type="email" id="searchEmailInput" placeholder="Enter email to check..." class="form-control" style="flex: 1;">
+                    <button onclick="checkEmail()" class="btn btn-secondary">Search</button>
+                </div>
+                <div id="searchResult" style="margin-top: 16px; padding: 12px; border-radius: 8px; display: none; font-size: 14px;"></div>
+            </div>
+
+            <!-- SCROLLABLE LIST -->
+            <div style="padding: 20px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h4 style="font-size: 15px;">Participant List (<span id="participantCount">{{ allowed_participants.count }}</span>)</h4>
+                    <button onclick="reloadParticipants()" class="btn" style="font-size: 11px; padding: 4px 8px; background: transparent; border: 1px solid var(--border); color: var(--text-muted);">Refresh List</button>
+                </div>
+                <div id="participantListScroll" class="custom-scroll" style="max-height: 250px; overflow-y: auto; padding-right: 8px;">
+                    <div id="participantListItems">
+                        <p class="no-data" style="font-size: 13px; color: var(--text-muted);">Click "Refresh List" to view emails.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -226,6 +262,36 @@
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
     }
+
+    /* Custom Scrollbar */
+    .custom-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .delete-btn-sm {
+        background: transparent;
+        border: none;
+        color: #ff4d4d;
+        cursor: pointer;
+        font-size: 11px;
+        padding: 4px 0;
+        transition: opacity 0.2s;
+    }
+    .delete-btn-sm:hover {
+        opacity: 0.8;
+        text-decoration: underline;
+    }
 </style>
 
 <script>
@@ -260,21 +326,60 @@
     }
 
     async function reloadParticipants() {
+        const listContainer = document.getElementById("participantListItems");
+        const countSpan = document.getElementById("participantCount");
+        
         try {
-            const res = await fetch(window.location.href);
-            const html = await res.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, "text/html");
-            const newList = doc.getElementById("participantList");
-            const count = doc.getElementById("participantCount");
-            if (newList) {
-                document.getElementById("participantList").innerHTML = newList.innerHTML;
-                if(count) document.getElementById("participantCount").innerHTML = count.innerHTML;
-            } else {
-                location.reload();
+            const res = await fetch(`{% url 'dashboard:participants_list' quiz.id %}`);
+            const data = await res.json();
+            
+            if (countSpan) countSpan.innerText = data.participants.length;
+            
+            if (!data.participants || data.participants.length === 0) {
+                listContainer.innerHTML = '<p class="no-data" style="font-size: 13px; color: var(--text-muted); padding: 10px;">No participants found.</p>';
+                return;
             }
+
+            let html = '<ul style="list-style: none; padding: 0; margin: 0;">';
+            data.participants.forEach(p => {
+                html += `
+                    <li style="display: flex; justify-content: space-between; align-items: center; padding: 10px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                        <span style="font-size: 13px; color: var(--text-muted); font-family: monospace;">${p.email}</span>
+                        <button onclick="deleteParticipant('${p.email}')" class="delete-btn-sm">Delete</button>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            listContainer.innerHTML = html;
         } catch (e) {
             console.error(e);
+            listContainer.innerHTML = '<p class="no-data" style="color: #ff4d4d; padding: 10px;">Error loading list.</p>';
+        }
+    }
+
+    async function deleteParticipant(email) {
+        if (!confirm(`Remove ${email} from allowed list?`)) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('email', email);
+            const res = await fetch(`{% url 'dashboard:delete_participant' quiz.id %}`, {
+                method: "POST",
+                body: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast(data.message);
+                reloadParticipants();
+                // If search result is showing this email, hide it
+                const resultDiv = document.getElementById("searchResult");
+                if (resultDiv.innerText.includes(email)) resultDiv.style.display = "none";
+            } else {
+                alert(data.message);
+            }
+        } catch (e) {
+            alert("Error deleting participant.");
         }
     }
 
@@ -299,7 +404,7 @@
                     this.reset();
                     // update file label
                     const fileInput = this.querySelector('input[type="file"]');
-                    if (fileInput.nextElementSibling && fileInput.nextElementSibling.classList.contains('file-name')) {
+                    if (fileInput && fileInput.nextElementSibling && fileInput.nextElementSibling.classList.contains('file-name')) {
                         fileInput.nextElementSibling.innerText = "No file chosen";
                     }
                 } else {
@@ -344,5 +449,76 @@
             }
         });
     }
+
+    const mForm = document.getElementById("manualEmailForm");
+    if (mForm) {
+        mForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Adding...";
+            try {
+                const formData = new FormData(this);
+                const res = await fetch(this.action, {
+                    method: "POST",
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message);
+                    await reloadParticipants();
+                    this.reset();
+                } else {
+                    alert(data.message || "Failed to add email");
+                }
+            } catch (err) {
+                alert("Server error occurred.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Add";
+            }
+        });
+    }
+
+    async function checkEmail() {
+        const input = document.getElementById("searchEmailInput");
+        const resultDiv = document.getElementById("searchResult");
+        const email = input.value.trim();
+
+        if (!email) {
+            alert("Please enter an email to search.");
+            return;
+        }
+
+        try {
+            const res = await fetch(`{% url 'dashboard:check_email' quiz.id %}?email=${encodeURIComponent(email)}`);
+            const data = await res.json();
+            
+            resultDiv.style.display = "block";
+            if (data.exists) {
+                resultDiv.style.background = "rgba(40, 167, 69, 0.15)";
+                resultDiv.style.color = "#2ecc71";
+                resultDiv.style.border = "1px solid rgba(46, 204, 113, 0.3)";
+                resultDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span><strong>Found:</strong> ${email}</span>
+                        <button onclick="deleteParticipant('${email}')" style="background: #ff4d4d; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">Remove</button>
+                    </div>
+                `;
+            } else {
+                resultDiv.style.background = "rgba(231, 76, 60, 0.15)";
+                resultDiv.style.color = "#e74c3c";
+                resultDiv.style.border = "1px solid rgba(231, 76, 60, 0.3)";
+                resultDiv.innerHTML = `<strong>Not Found:</strong> ${email} is not in the list.`;
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error checking email.");
+        }
+    }
+    
+    // Initial Load
+    reloadParticipants();
 </script>
 {% endblock %}

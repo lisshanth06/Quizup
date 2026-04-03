@@ -12,20 +12,25 @@
         .rank-1 {
             background-color: rgba(255, 215, 0, 0.08) !important;
         }
+
         .rank-1 td {
             color: #FFD700 !important;
             font-weight: 600;
         }
+
         .rank-2 {
             background-color: rgba(192, 192, 192, 0.06) !important;
         }
+
         .rank-2 td {
             color: #C0C0C0 !important;
             font-weight: 600;
         }
+
         .rank-3 {
             background-color: rgba(205, 127, 50, 0.08) !important;
         }
+
         .rank-3 td {
             color: #CD7F32 !important;
             font-weight: 600;
@@ -56,9 +61,8 @@
                 </thead>
                 <tbody>
                     {% for entry in leaderboard %}
-                    <tr 
-                        class="{% if participant and entry.participant.id == participant.id %}highlight-row{% endif %} {% if entry.rank == 1 %}rank-1{% elif entry.rank == 2 %}rank-2{% elif entry.rank == 3 %}rank-3{% endif %}"
-                    >
+                    <tr
+                        class="{% if participant and entry.participant.id == participant.id %}highlight-row{% endif %} {% if entry.rank == 1 %}rank-1{% elif entry.rank == 2 %}rank-2{% elif entry.rank == 3 %}rank-3{% endif %}">
                         <td>
                             {% if entry.rank == 1 %}
                             <strong class="gold">{{ entry.rank }}</strong>
@@ -73,9 +77,6 @@
                         <td>
                             {% if entry.rank == 1 %}🥇{% elif entry.rank == 2 %}🥈{% elif entry.rank == 3 %}🥉{% endif %}
                             {{ entry.participant.name }}
-                            {% if entry.cheat_score >= 5 %}
-                                <span class="badge" style="background-color: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-left: 5px;">Suspicious</span>
-                            {% endif %}
                         </td>
                         <td>{{ entry.participant.email }}</td>
                         <td>{{ entry.raw_score }}</td>
@@ -87,7 +88,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="no-data">No participants yet.</td>
+                        <td colspan="9" class="no-data">No participants yet.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -103,34 +104,40 @@
     </div>
 </div>
 
-{% if participant_rank and participant_rank <= 3 %}
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var duration = 3 * 1000;
-        var animationEnd = Date.now() + duration;
-        var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+{% if participant_rank and participant_rank <= 3 %} <script
+    src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
 
-        function randomInRange(min, max) {
-            return Math.random() * (max - min) + min;
-        }
-
-        var interval = setInterval(function() {
-            var timeLeft = animationEnd - Date.now();
-
-            if (timeLeft <= 0) {
-                return clearInterval(interval);
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
             }
 
-            var particleCount = 50 * (timeLeft / duration);
-            confetti(Object.assign({}, defaults, { particleCount,
-                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
-            }));
-            confetti(Object.assign({}, defaults, { particleCount,
-                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
-            }));
-        }, 250);
-    });
-</script>
-{% endif %}
+            var interval = setInterval(function () {
+                var timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                }));
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                }));
+            }, 250);
+        });
+    </script>
+    {% endif %}
+
+{% include 'footer.html' %}
+
 {% endblock %}

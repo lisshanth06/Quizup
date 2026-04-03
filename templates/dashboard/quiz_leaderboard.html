@@ -30,13 +30,10 @@
                 </thead>
                 <tbody>
                     {% for entry in leaderboard %}
-                    <tr {% if entry.cheat_score > 0 %}style="background-color: #fee2e2; color: #991b1b;"{% endif %}>
+                    <tr>
                         <td>{{ entry.rank }}</td>
                         <td>
                             {{ entry.participant.name }}
-                            {% if entry.cheat_score >= 5 %}
-                                <span class="badge" style="background-color: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-left: 5px;">Suspicious</span>
-                            {% endif %}
                         </td>
                         <td>{{ entry.participant.email }}</td>
                         <td>{{ entry.raw_score }}</td>

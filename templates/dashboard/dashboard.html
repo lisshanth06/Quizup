@@ -84,8 +84,15 @@
     }
 
     @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
     }
 </style>
 
@@ -118,13 +125,13 @@
 
     function bindToggleForms() {
         document.querySelectorAll('.leaderboard-toggle-form').forEach(form => {
-            form.addEventListener('submit', async function(e) {
+            form.addEventListener('submit', async function (e) {
                 e.preventDefault();
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const originalText = submitBtn.innerText;
                 submitBtn.disabled = true;
                 submitBtn.innerText = "Updating...";
-                
+
                 try {
                     const formData = new FormData(this);
                     const res = await fetch(this.action, {
@@ -133,7 +140,7 @@
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
                     const data = await res.json();
-                    
+
                     if (data.success) {
                         showToast(data.message);
                         await reloadLeaderboard();
@@ -154,4 +161,7 @@
     // Initial binding
     bindToggleForms();
 </script>
+
+{% include 'footer.html' %}
+
 {% endblock %}

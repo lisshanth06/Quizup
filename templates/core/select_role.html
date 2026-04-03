@@ -1,119 +1,146 @@
 {% extends 'base.html' %}
 
-{% block navbar %}{% endblock %}
+{% block navbar %}
+<nav class="navbar">
+    <div class="container">
+        <a href="{% url 'select_role_home' %}" class="logo">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkhZFYRCVOI_ZRCKxjQhWocWYwVa9Zp80XqA&s"
+                alt="CSI Logo">
+            <span class="logo-text" style="color: #3B82F6;">CSI</span>
+        </a>
+    </div>
+</nav>
+{% endblock %}
 
 {% block content %}
 <style>
-.role-container {
-  min-height: 80vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
+  }
 
-.role-card {
-  padding: 40px;
-  border-radius: 16px;
-  text-align: center;
-  max-width: 400px;
-  width: 100%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  background: rgba(20, 20, 20, 0.4);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
+  .role-container {
+    padding-top: 20px;
+    padding-bottom: 60px;
+    min-height: calc(100vh - 140px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    display: flow-root; /* Prevents margin collapsing */
+  }
 
-.role-card h1 {
-  margin-bottom: 8px;
-  font-size: 28px;
-}
+  /* Flex wrapper for centering card */
+  .role-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 250px);
+    padding: 40px 24px;
+  }
 
-.role-card p {
-  margin-bottom: 32px;
-  color: #a0a0a0;
-}
+  .role-card {
+    padding: 40px;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    background: rgba(20, 20, 20, 0.5);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
 
-.role-options {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+  .role-card:hover {
+    transform: none;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
 
-.role-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  background: #111;
-  border: 1px solid #333;
-}
+  .role-card h1 {
+    margin-bottom: 8px;
+    font-size: 28px;
+    color: #fff;
+  }
 
-.role-btn::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.5s ease;
-}
+  .role-card p {
+    margin-bottom: 32px;
+    color: #a0a0a0;
+  }
 
-.role-btn:hover::before {
-  transform: translateX(100%);
-}
+  .role-options {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
 
-/* ADMIN BUTTON (RED OUTLINE) */
-.admin-btn {
-  color: #EF4444;
-  border-color: #EF4444;
-}
+  .role-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    background: #111;
+    border: 1px solid #333;
+  }
 
-.admin-btn:hover {
-  color: #B91C1C;
-  border-color: #B91C1C;
-}
+  .role-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+  }
 
-/* USER BUTTON (GREEN OUTLINE) */
-.user-btn {
-  color: #3ECF8E;
-  border-color: #3ECF8E;
-}
+  .role-btn:hover::before {
+    transform: translateX(100%);
+  }
 
-.user-btn:hover {
-  color: #2EB67D;
-  border-color: #2EB67D;
-}
+  .admin-btn {
+    color: #EF4444;
+    border-color: #EF4444;
+  }
+
+  .admin-btn:hover {
+    color: #B91C1C;
+    border-color: #B91C1C;
+  }
+
+  .user-btn {
+    color: #3B82F6;
+    border-color: #3B82F6;
+  }
+
+  .user-btn:hover {
+    color: #2563EB;
+    border-color: #2563EB;
+  }
 </style>
 
-<div class="container role-container">
-
-  <div class="card role-card">
-
-    <h1>Select Access</h1>
-    <p>Choose how you want to continue</p>
-
-    <div class="role-options">
-
-      <!-- ADMIN -->
-      <a href="{% url 'dashboard:login' %}" class="role-btn admin-btn">
-        Login as Admin
-      </a>
-
-      <!-- USER -->
-      <a href="{% url 'core:landing' %}" class="role-btn user-btn">
-        Continue as User
-      </a>
-
+<div class="role-container">
+  <div class="role-wrapper">
+    <div class="card role-card">
+      <h1>Select Access</h1>
+      <p>Choose how you want to continue</p>
+      <div class="role-options">
+        <a href="{% url 'dashboard:login' %}" class="role-btn admin-btn">
+          Login as Admin
+        </a>
+        <a href="{% url 'core:landing' %}" class="role-btn user-btn">
+          Continue as User
+        </a>
+      </div>
     </div>
-
   </div>
-
 </div>
+
+{% include 'footer.html' %}
 {% endblock %}

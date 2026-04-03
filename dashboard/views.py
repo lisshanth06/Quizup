@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.cache import never_cache
 
 
 from quizzes.models import Quiz, Question, AllowedParticipant
@@ -21,7 +22,7 @@ def admin_login_required(view_func):
             return redirect("dashboard:login")
         return view_func(request, *args, **kwargs)
 
-    return wrapper
+    return never_cache(wrapper)
 
 
 # ------------------------------------------------------------------
@@ -46,7 +47,7 @@ def login(request):
 
 @require_http_methods(["POST"])
 def logout(request):
-    request.session.pop("is_admin", None)
+    request.session.flush()
     return redirect("dashboard:login")
 
 
@@ -231,6 +232,101 @@ def clear_emails(request, quiz_id):
     return redirect("dashboard:quiz_manage", quiz_id=quiz_id)
 
 
+@admin_login_required
+@require_http_methods(["POST"])
+def manual_add_email(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+
+    if quiz.status != Quiz.Status.DRAFT:
+        return JsonResponse({"success": False, "message": "Cannot modify participants after deployment."})
+
+    email = request.POST.get("email", "").strip().lower()
+    if not email or "@" not in email:
+        return JsonResponse({"success": False, "message": "Invalid email address."})
+
+    if AllowedParticipant.objects.filter(quiz=quiz, email=email).exists():
+        return JsonResponse({"success": False, "message": "Email already in list."})
+
+    AllowedParticipant.objects.create(quiz=quiz, email=email)
+    return JsonResponse({"success": True, "message": f"Added {email}."})
+
+
+@admin_login_required
+@require_http_methods(["GET"])
+def check_email_presence(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    email = request.GET.get("email", "").strip().lower()
+
+    if not email:
+        return JsonResponse({"exists": False, "message": "Email required."})
+
+    exists = AllowedParticipant.objects.filter(quiz=quiz, email=email).exists()
+    return JsonResponse({"exists": exists, "message": "Participant found." if exists else "Participant not found."})
+
+
+@admin_login_required
+@require_http_methods(["POST"])
+def delete_participant(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    email = request.POST.get("email", "").strip().lower()
+
+    if quiz.status != Quiz.Status.DRAFT:
+        return JsonResponse({"success": False, "message": "Cannot delete participants after deployment."})
+
+    try:
+        participant = AllowedParticipant.objects.get(quiz=quiz, email=email)
+        participant.delete()
+        return JsonResponse({"success": True, "message": f"Removed {email}."})
+    except AllowedParticipant.DoesNotExist:
+        return JsonResponse({"success": False, "message": "Participant not found."})
+
+
+@admin_login_required
+def participants_list(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    participants = quiz.allowed_participants.all().order_by("email")
+    data = [{"email": p.email} for p in participants]
+    return JsonResponse({"participants": data})
+
+
+@admin_login_required
+def download_allowed_emails(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    
+    # User requested Download should follow LEADERBOARD order if participants exist
+    leaderboard = calculate_quiz_scores(quiz)
+
+    import csv
+    from django.http import HttpResponse
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{quiz.name}_leaderboard_emails.csv"'
+
+    writer = csv.writer(response)
+    
+    # Include Name and Email as requested
+    writer.writerow(['Rank', 'Name', 'Email', 'Correct Answers', 'Final Score'])
+
+    if leaderboard:
+        # Export from performance
+        for entry in leaderboard:
+            writer.writerow([
+                entry['rank'],
+                entry['participant'].name,
+                entry['participant'].email,
+                entry['raw_score'],
+                entry['final_score']
+            ])
+    else:
+        # Fallback: Just return allowed emails if no one has taken the quiz but only if still in DRAFT?
+        # Actually, let's just use the allowed list as fallback
+        participants = quiz.allowed_participants.all().order_by("email")
+        for p in participants:
+            writer.writerow(['-', '-', p.email, '-', '-'])
+
+    return response
+
+
 # ------------------------------------------------------------------
 # QUESTION MANAGEMENT
 # ------------------------------------------------------------------
@@ -294,8 +390,8 @@ def quiz_leaderboard_view(request, quiz_id):
 @admin_login_required
 def quiz_live_leaderboard(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
-    # Ensure quiz is LIVE or has been LIVE
-    return render(request, "dashboard/live_leaderboard.html", {"quiz": quiz})
+    leaderboard = calculate_quiz_scores(quiz)
+    return render(request, "dashboard/live_leaderboard.html", {"quiz": quiz, "leaderboard": leaderboard})
 
 
 @admin_login_required
@@ -310,6 +406,7 @@ def quiz_live_data(request, quiz_id):
             {
                 "rank": entry["rank"],
                 "name": entry["participant"].name,
+                "email": entry["participant"].email,
                 "score": entry["final_score"],
                 "raw_score": entry["raw_score"],
                 "cheat_score": entry["cheat_score"],
