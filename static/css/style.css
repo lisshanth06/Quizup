@@ -640,17 +640,7 @@ select.form-control {
     color: var(--border);
 }
 
-/* ============================================
-   OTP INPUT
-   ============================================ */
-.otp-input {
-    text-align: center;
-    font-size: 28px;
-    letter-spacing: 10px;
-    font-weight: 600;
-    font-family: 'JetBrains Mono', 'Courier New', monospace;
-    padding: 14px;
-}
+
 
 /* ============================================
    LANDING PAGE
@@ -1247,10 +1237,7 @@ select.form-control {
         font-size: 16px;
     }
 
-    .otp-input {
-        font-size: 22px;
-        letter-spacing: 6px;
-    }
+
 
     .actions-row {
         flex-direction: column;

@@ -140,17 +140,8 @@
 
     /* ---------- BLOCK SHORTCUTS & ANTI-CHEAT ---------- */
     let lastCheatTime = 0;
-    let isPageLoaded = false;
     let isSubmitting = false;
     let blurStart = null;
-
-    // Ignore events in the first 3 seconds of page load
-    window.onload = () => {
-        setTimeout(() => {
-            isPageLoaded = true;
-            console.log("Anti-cheat system active");
-        }, 3000);
-    };
 
     // Track form submission to allow navigation
     document.getElementById("answerForm").addEventListener("submit", () => {
@@ -159,7 +150,7 @@
     });
 
     function reportCheat(reason, durationMs = null) {
-        if (!isPageLoaded || isSubmitting) return;
+        if (isSubmitting) return;
 
         const now = Date.now();
         if (now - lastCheatTime < 3000) return; // Debounce triggers
@@ -172,6 +163,7 @@
 
         fetch(`/quiz/{{ quiz.id }}/report-cheat/`, {
             method: "POST",
+            credentials: "same-origin",
             headers: {
                 "Content-Type": "application/json",
                 "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
@@ -199,7 +191,7 @@
 
     // Tab Switching / Browser Focus Detection with Time Threshold
     window.addEventListener("blur", () => {
-        if (isPageLoaded && !isSubmitting) {
+        if (!isSubmitting) {
             blurStart = Date.now();
         }
     });
@@ -216,7 +208,7 @@
     });
 
     document.addEventListener("visibilitychange", () => {
-        if (!isPageLoaded || isSubmitting) return;
+        if (isSubmitting) return;
 
         if (document.hidden) {
             if (!blurStart) blurStart = Date.now();

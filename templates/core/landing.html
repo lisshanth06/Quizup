@@ -41,7 +41,7 @@
                 <a href="{% url 'leaderboard:quiz_leaderboard' quiz.id %}" class="btn btn-secondary"
                     style="margin-top: 10px;">View Leaderboard</a>
                 {% else %}
-                <a href="{% url 'accounts:send_otp' quiz.id %}" class="btn btn-primary">Join Quiz</a>
+                <a href="{% url 'accounts:login' quiz.id %}" class="btn btn-primary">Join Quiz</a>
                 {% endif %}
             </div>
             {% endfor %}

@@ -10,23 +10,40 @@ class QuizParticipant(HttpUser):
 
     def on_start(self):
         """
-        Setup: Fetch a CSRF token and attempt to find a valid Quiz ID.
+        Setup: Pick a random test account, get a CSRF token from the login page, 
+        and authenticate the session.
         """
-        # 1. Access the landing page to get a 'csrftoken' cookie
-        response = self.client.get("/landing/")
-        self.csrf_token = self.client.cookies.get('csrftoken', '')
-        
-        # 2. Try to find an active quiz ID from the API to avoid 404s
-        self.quiz_id = 1  # Fallback
-        with self.client.get("/landing/api/quiz-states/", name="Setup: Fetch Quiz IDs", catch_response=True) as res:
+        # Extract Quiz ID dynamically
+        self.quiz_id = 1
+        with self.client.get("/landing/api/quiz-states/", name="Fetch Quiz IDs", catch_response=True) as res:
             if res.status_code == 200:
                 try:
                     data = res.json()
                     if data:
-                        # Use the first available quiz ID
                         self.quiz_id = list(data.keys())[0]
                 except Exception:
                     pass
+        
+        # Get baseline CSRF token
+        response = self.client.get(f"/auth/login/{self.quiz_id}/", name="Fetch Login Page")
+        self.csrf_token = self.client.cookies.get('csrftoken', '')
+        
+        # Pick one of the 200 pre-generated test accounts
+        import random
+        user_index = random.randint(0, 199)
+        self.email = f"loaduser{user_index}@test.com"
+
+        # Form-based login
+        self.client.post(
+            f"/auth/login/{self.quiz_id}/",
+            data={
+                "name": f"Load Tester {user_index}",
+                "email": self.email,
+                "csrfmiddlewaretoken": self.csrf_token
+            },
+            headers={"Referer": f"http://127.0.0.1:8000/auth/login/{self.quiz_id}/"},
+            name="Submit Login"
+        )
 
     @task(10)
     def poll_quiz_status(self):

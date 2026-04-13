@@ -6,7 +6,7 @@
 <div class="container">
     <div class="auth-form">
         <h2>Join Quiz</h2>
-        <p class="info-text">Enter your details to receive an OTP for <strong>{{ quiz.name }}</strong></p>
+        <p class="info-text">Enter your details to join <strong>{{ quiz.name }}</strong></p>
 
         <form method="post" class="form">
             {% csrf_token %}
@@ -22,7 +22,7 @@
                 <small class="form-text">Use the email address provided by your organizer</small>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block">Send OTP</button>
+            <button type="submit" class="btn btn-primary btn-block">Join Quiz</button>
         </form>
 
         <div class="form-footer">

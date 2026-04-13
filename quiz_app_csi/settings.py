@@ -142,9 +142,6 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='jjfjdcrbeoliqiqo')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='csisvce26@gmail.com')
 EMAIL_TIMEOUT = 30
 
-# OTP Settings
-OTP_EXPIRY_MINUTES = 5
-OTP_RESEND_COOLDOWN_SECONDS = 60
 
 # Session Configuration
 SESSION_COOKIE_AGE = 86400  # 24 hours

@@ -21,10 +21,10 @@ def quiz_detail(request, quiz_id):
             'participant': None
         })
 
-    # 🔐 Must be logged in via OTP
+    # 🔐 Must be logged in
     participant_id = request.session.get('participant_id')
     if not participant_id:
-        return redirect('accounts:send_otp', quiz_id=quiz.id)
+        return redirect('accounts:login', quiz_id=quiz.id)
 
     participant = get_object_or_404(
         Participant,
@@ -35,7 +35,7 @@ def quiz_detail(request, quiz_id):
     # 🚫 Must be verified
     if not participant.verified:
         request.session.flush()
-        return redirect('accounts:send_otp', quiz_id=quiz.id)
+        return redirect('accounts:login', quiz_id=quiz.id)
 
     # 🚫 Cannot re-attempt the quiz once completed
     if QuizAttempt.objects.filter(participant=participant, quiz=quiz).exists() or participant.has_completed:
@@ -147,7 +147,7 @@ def submit_answer(request, quiz_id):
 
     participant_id = request.session.get('participant_id')
     if not participant_id:
-        return redirect('accounts:send_otp', quiz_id=quiz.id)
+        return redirect('accounts:login', quiz_id=quiz.id)
 
     participant = get_object_or_404(
         Participant,
