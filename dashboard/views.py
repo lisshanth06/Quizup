@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
 
 
-from quizzes.models import Quiz, Question, AllowedParticipant
+from quizzes.models import Quiz, Question, AllowedParticipant, Participant
 from leaderboard.views import calculate_quiz_scores
 
 
@@ -60,7 +60,7 @@ def dashboard(request):
     quizzes = Quiz.objects.all().order_by("-created_at")
     for quiz in quizzes:
         quiz.active_participants_count = quiz.participants.filter(
-            verified=True, has_completed=False
+            has_completed=False
         ).count()
     return render(request, "dashboard/dashboard.html", {"quizzes": quizzes})
 
@@ -183,9 +183,6 @@ def toggle_leaderboard(request, quiz_id):
 @require_http_methods(["POST"])
 def upload_emails(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
-    
-    if quiz.status != Quiz.Status.DRAFT:
-        return JsonResponse({"success": False, "message": "Cannot modify allowed participants after deployment."})
 
     if "csv_file" not in request.FILES:
         return JsonResponse({"success": False, "message": "No file uploaded."})
@@ -237,9 +234,6 @@ def clear_emails(request, quiz_id):
 def manual_add_email(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
 
-    if quiz.status != Quiz.Status.DRAFT:
-        return JsonResponse({"success": False, "message": "Cannot modify participants after deployment."})
-
     email = request.POST.get("email", "").strip().lower()
     if not email or "@" not in email:
         return JsonResponse({"success": False, "message": "Invalid email address."})
@@ -270,15 +264,17 @@ def delete_participant(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
     email = request.POST.get("email", "").strip().lower()
 
-    if quiz.status != Quiz.Status.DRAFT:
-        return JsonResponse({"success": False, "message": "Cannot delete participants after deployment."})
-
     try:
-        participant = AllowedParticipant.objects.get(quiz=quiz, email=email)
-        participant.delete()
-        return JsonResponse({"success": True, "message": f"Removed {email}."})
-    except AllowedParticipant.DoesNotExist:
-        return JsonResponse({"success": False, "message": "Participant not found."})
+        # 1. Remove from allowed list
+        AllowedParticipant.objects.filter(quiz=quiz, email=email).delete()
+        
+        # 2. Delete actual participant record (cascades to attempts)
+        deleted_count, _ = Participant.objects.filter(quiz=quiz, email=email).delete()
+        
+        status_msg = "and their progress has been cleared." if deleted_count > 0 else "from the allowed list."
+        return JsonResponse({"success": True, "message": f"Successfully removed {email} {status_msg}"})
+    except Exception as e:
+        return JsonResponse({"success": False, "message": f"Error: {str(e)}"})
 
 
 @admin_login_required

@@ -71,7 +71,6 @@
         <h3>Allowed Participants</h3>
         <p style="color: var(--text-muted); font-size: 14px;">Manage users who can attend this quiz.</p>
 
-        {% if quiz.can_edit %}
         <!-- ADD / UPLOAD ROW -->
         <div style="display: flex; gap: 16px; align-items: flex-end; margin: 20px 0; flex-wrap: wrap; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
             <form id="manualEmailForm" method="post" action="{% url 'dashboard:add_email' quiz.id %}" style="flex: 1; min-width: 280px; margin: 0;">
@@ -96,14 +95,15 @@
         </div>
 
         <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+            {% if quiz.can_edit %}
             <form method="post" action="{% url 'dashboard:clear_emails' quiz.id %}"
                 onsubmit="return confirm('Clear all allowed emails?');" style="margin: 0;">
                 {% csrf_token %}
                 <button type="submit" class="danger-btn" style="padding: 10px 20px;">Clear All List</button>
             </form>
+            {% endif %}
             <a href="{% url 'dashboard:download_emails' quiz.id %}" class="btn btn-secondary" style="padding: 10px 20px;">Download CSV</a>
         </div>
-        {% endif %}
 
         <div class="participants-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
             <!-- SEARCH -->

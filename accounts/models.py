@@ -1,9 +1,2 @@
-from django.db import models
-from django.utils import timezone
-from django.core.validators import EmailValidator
-import secrets
-from datetime import timedelta
-from django.conf import settings
-
-
-# Removed OTP model
+# accounts/models.py
+# OTP model removed — authentication is now email-based (no OTP needed).

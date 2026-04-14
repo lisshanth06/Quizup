@@ -141,7 +141,6 @@
     /* ---------- BLOCK SHORTCUTS & ANTI-CHEAT ---------- */
     let lastCheatTime = 0;
     let isSubmitting = false;
-    let blurStart = null;
 
     // Track form submission to allow navigation
     document.getElementById("answerForm").addEventListener("submit", () => {
@@ -170,7 +169,7 @@
             },
             body: JSON.stringify({ reason: reason })
         }).then(response => {
-            alert("Warning: Leaving the quiz tab or taking screenshots is prohibited. A penalty of -0.25 marks has been applied.");
+            alert("Warning: Shortcut keys and screenshots are prohibited. A penalty of -0.25 marks has been applied.");
         }).catch(err => console.error("Cheat reporting failed", err));
     }
 
@@ -189,37 +188,18 @@
         }
     });
 
-    // Tab Switching / Browser Focus Detection with Time Threshold
-    window.addEventListener("blur", () => {
-        if (!isSubmitting) {
-            blurStart = Date.now();
-        }
-    });
-
-    window.addEventListener("focus", () => {
-        if (!blurStart) return;
-
-        const duration = Date.now() - blurStart;
-        blurStart = null;
-
-        if (duration > 2000) {
-            reportCheat("Tab Switched or Browser Minimized", duration);
-        }
-    });
-
-    document.addEventListener("visibilitychange", () => {
-        if (isSubmitting) return;
-
-        if (document.hidden) {
-            if (!blurStart) blurStart = Date.now();
-        } else {
-            if (!blurStart) return;
-            const duration = Date.now() - blurStart;
-            blurStart = null;
-
-            if (duration > 2000) {
-                reportCheat("Left Page Visibility", duration);
+    // Shortcuts Blocked
+    document.addEventListener('keydown', function (e) {
+        if (e.ctrlKey || e.metaKey || e.key === "F12" || e.key === "PrintScreen") {
+            if (e.key === "PrintScreen") {
+                reportCheat("Screenshot Attempt (PrintScreen)");
             }
+            e.preventDefault();
+        }
+        
+        if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 's' || e.key === 'S')) {
+            reportCheat("Screenshot Attempt (Shortcut)");
+            e.preventDefault();
         }
     });
 </script>

@@ -80,7 +80,6 @@ class Participant(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="participants")
     name = models.CharField(max_length=255)
     email = models.EmailField(max_length=254)
-    verified = models.BooleanField(default=False)
     has_completed = models.BooleanField(default=False)
     cheat_score = models.IntegerField(default=0)
 

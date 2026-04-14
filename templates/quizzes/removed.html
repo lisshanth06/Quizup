@@ -1,0 +1,32 @@
+{% extends 'base_user.html' %}
+
+{% block title %}Removed from Quiz{% endblock %}
+
+{% block content %}
+<div class="container" style="display: flex; align-items: center; justify-content: center; min-height: 70vh;">
+    <div style="text-align: center; max-width: 480px; padding: 40px 32px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; backdrop-filter: blur(12px);">
+
+        <!-- Icon -->
+        <div style="font-size: 56px; margin-bottom: 20px;">🚫</div>
+
+        <!-- Title -->
+        <h2 style="font-size: 24px; font-weight: 700; color: #FF4D4D; margin-bottom: 12px;">
+            You have been removed
+        </h2>
+
+        <!-- Message -->
+        <p style="font-size: 15px; color: var(--text-muted); line-height: 1.7; margin-bottom: 28px;">
+            The quiz host has removed you from <strong style="color: var(--text);">{{ quiz.name }}</strong>.<br>
+            Your progress has been cleared. Please contact the organizer if you believe this is a mistake.
+        </p>
+
+        <!-- Divider -->
+        <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 24px 0;"></div>
+
+        <!-- Action -->
+        <a href="{% url 'core:landing' %}" class="btn btn-secondary" style="display: inline-block; padding: 12px 28px;">
+            ← Back to Home
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -27,4 +27,10 @@ urlpatterns = [
         views.report_cheat,
         name='report_cheat'
     ),
+
+    path(
+        '<int:quiz_id>/removed/',
+        views.removed_by_host,
+        name='removed_by_host'
+    ),
 ]

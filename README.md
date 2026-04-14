@@ -1,23 +1,23 @@
 # Quiz App CSI
 
-A complete multi-round online quiz platform built with Django and PostgreSQL.
+A complete online quiz platform built with Django and PostgreSQL, featuring randomized question ordering and secure email-based access.
 
 ## Features
 
-- 🎯 Multi-round quiz system with qualification limits
-- 📧 Email OTP verification (college email only)
+- 🎯 Personalized quiz experience with randomized question order per participant
+- 📧 Secure email-based entry (registered users only)
 - 📊 Real-time leaderboard with CSV export
 - 🏆 Final podium celebration (top 3)
-- 🔒 Security features (no copy/paste, right-click disabled)
+- 🔒 Anti-cheat features (no copy/paste, right-click disabled, tab-switch detection)
 - 👨‍💼 Custom admin dashboard (no Django admin)
-- ⚡ Optimized for 500+ concurrent users
+- ⚡ Optimized for high concurrency
 
 ## Tech Stack
 
 - **Backend**: Django 4.2+
 - **Database**: PostgreSQL (psycopg2)
-- **Frontend**: Django Templates, CSS, HTMX
-- **Email**: SMTP (Gmail supported)
+- **Frontend**: Django Templates, CSS
+- **Environment**: Decouple (.env support)
 
 ## Prerequisites
 
@@ -49,34 +49,11 @@ pip install -r requirements.txt
 
 ### 4. Setup PostgreSQL Database
 
-Create a PostgreSQL database:
-
-```sql
-CREATE DATABASE quizdb;
-CREATE USER postgres WITH PASSWORD 'postgres';
-GRANT ALL PRIVILEGES ON DATABASE quizdb TO postgres;
-```
+Create a PostgreSQL database and configure the credentials in your `.env` file.
 
 ### 5. Configure Environment Variables
 
-Create a `.env` file in the project root:
-
-```env
-SECRET_KEY=your-secret-key-here
-DB_NAME=quizdb
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_HOST=localhost
-DB_PORT=5432
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USE_TLS=True
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=your-app-password
-DEFAULT_FROM_EMAIL=your-email@gmail.com
-```
-
-**Note**: For Gmail, you need to use an [App Password](https://support.google.com/accounts/answer/185833) instead of your regular password.
+Create a `.env` file in the project root based on the project settings.
 
 ### 6. Run Migrations
 
@@ -85,13 +62,7 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 7. Create Static Files Directory
-
-```bash
-python manage.py collectstatic --noinput
-```
-
-### 8. Run Development Server
+### 7. Run Development Server
 
 ```bash
 python manage.py runserver
@@ -103,86 +74,50 @@ The application will be available at `http://localhost:8000`
 
 ### Admin Access
 
-1. Go to `http://localhost:8000/dashboard/login/`
-2. Password: `admin123` (change this in production!)
+1. Go to `http://localhost:8000/admin/` (or your configured dashboard URL)
+2. Login with the configured admin password.
 
-### Creating a Quiz
+### Creating and Managing a Quiz
 
-1. Login as admin
-2. Click "Create New Quiz" and enter a name
-3. Click "Manage" on the quiz
-4. Add rounds with qualification limits
-5. Add questions to each round
-6. Click "Deploy Quiz" when ready
+1. Login as admin.
+2. Create a new quiz.
+3. Upload allowed participant emails via CSV.
+4. Upload questions via CSV or add them manually.
+5. Deploy and start the quiz.
 
 ### Participating in a Quiz
 
-1. Go to the landing page (`http://localhost:8000`)
-2. Click "Join Quiz" on a live quiz
-3. Enter your name and college email (format: 2024it0054@svce.ac.in)
-4. Verify OTP sent to your email
-5. Answer questions when round is active
-6. View leaderboard after completing
+1. Go to the landing page.
+2. Click "Join Quiz" on an active quiz.
+3. Enter your name and registered email address.
+4. If allowed, you will proceed to the quiz rules and then the questions.
+5. Answer questions before the timer runs out.
+6. View your ranking on the leaderboard after completion.
 
 ## Project Structure
 
-```
-quiz_app_csi/
-├── accounts/          # Email OTP verification
-├── quizzes/           # Quiz, Round, Question models
-├── attempts/          # Participant answers
-├── leaderboard/       # Ranking and CSV export
-├── dashboard/         # Admin UI
-├── core/              # Landing page
-├── templates/         # HTML templates
-├── static/            # CSS and static files
-└── quiz_app_csi/      # Project settings
-```
-
-## Database Models
-
-- **Quiz**: Main quiz entity
-- **Round**: Multi-round structure
-- **Question**: MCQ questions with images
-- **Participant**: Registered participants
-- **Attempt**: Participant answers and timing
-- **OTP**: Email verification codes
+- `accounts/`: Participant authentication (email-based login)
+- `quizzes/`: Core quiz management, questions, and participation
+- `attempts/`: Tracking participant answers and session state
+- `leaderboard/`: Scoring logic and ranking views
+- `dashboard/`: Custom administrative interface
+- `core/`: Landing page and global layouts
 
 ## Security Features
 
-- College email validation (regex pattern)
-- OTP expiry (5 minutes)
-- OTP resend cooldown (60 seconds)
-- One participation per email per quiz
-- Server-side time enforcement
-- Disabled copy/paste and right-click
-- Session-based authentication
+- Email validation against an "Allowed" list uploaded by admin.
+- Server-side time enforcement for each question.
+- Randomized question sequence for every participant to prevent answer sharing.
+- Prevention of browser actions like right-click, copy, and paste.
+- Cheat score tracking for suspicious browser behavior.
 
 ## Performance Optimizations
 
-- Database indexes on frequently queried fields
-- `select_related` and `prefetch_related` for efficient queries
-- Optimized leaderboard calculations
-- PostgreSQL aggregation queries
-
-## Production Deployment
-
-Before deploying to production:
-
-1. Change `SECRET_KEY` in `.env`
-2. Set `DEBUG=False` in `settings.py`
-3. Update `ALLOWED_HOSTS`
-4. Use proper authentication for admin (replace simple password check)
-5. Configure proper email backend
-6. Set up proper static file serving
-7. Use environment variables for all sensitive data
-8. Enable HTTPS
-9. Set up proper database backups
+- Extensive use of database indexes for fast lookups.
+- Bulk creation for randomized sessions and CSV uploads.
+- Optimized querysets using `select_related` and `prefetch_related`.
+- Efficient score calculation using PostgreSQL aggregation.
 
 ## License
 
 This project is for educational purposes.
-
-## Support
-
-For issues or questions, please check the code comments or Django documentation.

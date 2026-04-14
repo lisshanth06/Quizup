@@ -26,16 +26,10 @@ def quiz_detail(request, quiz_id):
     if not participant_id:
         return redirect('accounts:login', quiz_id=quiz.id)
 
-    participant = get_object_or_404(
-        Participant,
-        id=participant_id,
-        quiz=quiz
-    )
-
-    # 🚫 Must be verified
-    if not participant.verified:
+    participant = Participant.objects.filter(id=participant_id, quiz=quiz).first()
+    if not participant:
         request.session.flush()
-        return redirect('accounts:login', quiz_id=quiz.id)
+        return redirect('quizzes:removed_by_host', quiz_id=quiz.id)
 
     # 🚫 Cannot re-attempt the quiz once completed
     if QuizAttempt.objects.filter(participant=participant, quiz=quiz).exists() or participant.has_completed:
@@ -149,11 +143,10 @@ def submit_answer(request, quiz_id):
     if not participant_id:
         return redirect('accounts:login', quiz_id=quiz.id)
 
-    participant = get_object_or_404(
-        Participant,
-        id=participant_id,
-        quiz=quiz
-    )
+    participant = Participant.objects.filter(id=participant_id, quiz=quiz).first()
+    if not participant:
+        request.session.flush()
+        return redirect('quizzes:removed_by_host', quiz_id=quiz.id)
 
     if quiz.status != Quiz.Status.LIVE:
         return redirect('quizzes:quiz_submitted', quiz_id=quiz.id)
@@ -293,3 +286,12 @@ def report_cheat(request, quiz_id):
         return JsonResponse({"success": True, "new_score": participant.cheat_score})
     except Participant.DoesNotExist:
         return JsonResponse({"error": "Participant not found"}, status=404)
+
+# =====================================================
+# REMOVED BY HOST PAGE
+# =====================================================
+def removed_by_host(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    return render(request, 'quizzes/removed.html', {
+        'quiz': quiz
+    })

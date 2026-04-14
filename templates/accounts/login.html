@@ -8,6 +8,10 @@
         <h2>Join Quiz</h2>
         <p class="info-text">Enter your details to join <strong>{{ quiz.name }}</strong></p>
 
+        {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+        {% endif %}
+
         <form method="post" class="form">
             {% csrf_token %}
             <div class="form-group">
@@ -18,7 +22,8 @@
 
             <div class="form-group">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" required class="form-control" placeholder="you@example.com">
+                <input type="email" id="email" name="email" required class="form-control"
+                    placeholder="you@svce.ac.in">
                 <small class="form-text">Use the email address provided by your organizer</small>
             </div>
 
